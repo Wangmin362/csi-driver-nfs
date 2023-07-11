@@ -33,6 +33,7 @@ import (
 )
 
 // NodeServer driver
+// 1、NodeServer实现了CSI规范的Node服务
 type NodeServer struct {
 	Driver  *Driver
 	mounter mount.Interface
@@ -121,6 +122,7 @@ func (ns *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	}
 
 	klog.V(2).Infof("NodePublishVolume: volumeID(%v) source(%s) targetPath(%s) mountflags(%v)", volumeID, source, targetPath, mountOptions)
+	// 挂载
 	err = ns.mounter.Mount(source, targetPath, "nfs", mountOptions)
 	if err != nil {
 		if os.IsPermission(err) {

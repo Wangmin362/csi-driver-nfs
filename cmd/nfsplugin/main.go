@@ -28,9 +28,12 @@ import (
 var (
 	endpoint = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
 	// TODO 这个参数有啥用？
-	nodeID                = flag.String("nodeid", "", "node id")
-	mountPermissions      = flag.Uint64("mount-permissions", 0, "mounted folder permissions")
-	driverName            = flag.String("drivername", nfs.DefaultDriverName, "name of the driver")
+	nodeID = flag.String("nodeid", "", "node id")
+	// TODO 这里的关在权限指的啥？
+	mountPermissions = flag.Uint64("mount-permissions", 0, "mounted folder permissions")
+	// TODO 驱动名字有何用处？
+	driverName = flag.String("drivername", nfs.DefaultDriverName, "name of the driver")
+	// TODO 这玩意干嘛的？
 	workingMountDir       = flag.String("working-mount-dir", "/tmp", "working directory for provisioner to mount nfs shares temporarily")
 	defaultOnDeletePolicy = flag.String("default-ondelete-policy", "", "default policy for deleting subdirectory when deleting a volume")
 )

@@ -36,17 +36,23 @@ type DriverOptions struct {
 }
 
 type Driver struct {
-	name                  string
-	nodeID                string
-	version               string
-	endpoint              string
-	mountPermissions      uint64
-	workingMountDir       string
+	// 当前驱动的名字，默认为：nfs.csi.k8s.io
+	name    string
+	nodeID  string
+	version string
+	// TODO 这玩意应该就是当前CSI插件监听的Socket路径
+	endpoint         string
+	mountPermissions uint64
+	workingMountDir  string
+	// 删除持久卷时是否删除子目录策略
 	defaultOnDeletePolicy string
 
 	//ids *identityServer
-	ns          *NodeServer
-	cscap       []*csi.ControllerServiceCapability
+	// NodeServer实现了CSI规范的Node服务
+	ns *NodeServer
+	// 当前CSI插件支持的ControllerService能力
+	cscap []*csi.ControllerServiceCapability
+	// 当前CSI插件支持的NodeService能力
 	nscap       []*csi.NodeServiceCapability
 	volumeLocks *VolumeLocks
 }
@@ -114,13 +120,15 @@ func NewNodeServer(n *Driver, mounter mount.Interface) *NodeServer {
 }
 
 func (n *Driver) Run(testMode bool) {
-	// 打印当前CSI存储插件的持久化存储信息
+	// 打印当前CSI存储插件的版本信息，这玩意对于排查问题来说缺失很有必要。很多问题通常是版本不对导致的，而在排查问题的过程当中，我们通常会
+	// 忽略这个因素
 	versionMeta, err := GetVersionYAML(n.name)
 	if err != nil {
 		klog.Fatalf("%v", err)
 	}
 	klog.V(2).Infof("\nDRIVER INFORMATION:\n-------------------\n%s\n\nStreaming logs below:", versionMeta)
 
+	// 用于挂在NFS
 	mounter := mount.New("")
 	if runtime.GOOS == "linux" {
 		// MounterForceUnmounter is only implemented on Linux now
@@ -128,6 +136,7 @@ func (n *Driver) Run(testMode bool) {
 	}
 	n.ns = NewNodeServer(n, mounter)
 	s := NewNonBlockingGRPCServer()
+	// 启动GRPC服务，并且监听endpoint参数所指向的socket文件
 	s.Start(n.endpoint,
 		NewDefaultIdentityServer(n),
 		// NFS plugin has not implemented ControllerServer

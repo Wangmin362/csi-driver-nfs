@@ -36,6 +36,7 @@ import (
 )
 
 // ControllerServer controller server setting
+// 实现了CSI插件的Controller服务
 type ControllerServer struct {
 	Driver *Driver
 }
@@ -112,17 +113,22 @@ const (
 
 // CreateVolume create a volume
 func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
+	// 获取当前要创建的卷的名字
 	name := req.GetName()
 	if len(name) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "CreateVolume name must be provided")
 	}
 
+	// 判断当前调用方申请的卷是否有效，NFS并不提供块存储服务
 	if err := isValidVolumeCapabilities(req.GetVolumeCapabilities()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	mountPermissions := cs.Driver.mountPermissions
+	// 获取调用方申请的持久卷的容量大小
 	reqCapacity := req.GetCapacityRange().GetRequiredBytes()
+	// 1、获取调用方传给NFS存储驱动的参数，这些参数将来肯定是需要直接传递给NFS的
+	// 2、这些参数的设置肯定是在PV持久卷当中
 	parameters := req.GetParameters()
 	if parameters == nil {
 		parameters = make(map[string]string)
@@ -139,6 +145,7 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		case pvNameKey:
 			// no op
 		case mountPermissionsField:
+			// 对于NFS系统来说，只需要对于权限的参数做处理，解析出用户传递的权限
 			if v != "" {
 				var err error
 				if mountPermissions, err = strconv.ParseUint(v, 8, 32); err != nil {
@@ -150,12 +157,14 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		}
 	}
 
+	// 实例化持久卷，此时NFS还未真正的创建持久卷
 	nfsVol, err := newNFSVolume(name, reqCapacity, parameters, cs.Driver.defaultOnDeletePolicy)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	var volCap *csi.VolumeCapability
+	// TODO 直接使用第一个元素作为调用方申请的卷能力
 	if len(req.GetVolumeCapabilities()) > 0 {
 		volCap = req.GetVolumeCapabilities()[0]
 	}

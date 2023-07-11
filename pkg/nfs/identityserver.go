@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// IdentityServer 实现了CSI规范的Identity服务
 type IdentityServer struct {
 	Driver *Driver
 }
@@ -47,6 +48,8 @@ func (ids *IdentityServer) GetPluginInfo(ctx context.Context, req *csi.GetPlugin
 // This method does not need to return anything.
 // Currently the spec does not dictate what you should return either.
 // Hence, return an empty response
+// 1、对于NFS来说，一直都是就绪的，不需要做额外的操作
+// 2、TODO  为什么这里不需要探测NFS服务倒是是否运行？如何理解这个接口定义
 func (ids *IdentityServer) Probe(ctx context.Context, req *csi.ProbeRequest) (*csi.ProbeResponse, error) {
 	return &csi.ProbeResponse{Ready: &wrappers.BoolValue{Value: true}}, nil
 }
@@ -55,6 +58,7 @@ func (ids *IdentityServer) GetPluginCapabilities(ctx context.Context, req *csi.G
 	return &csi.GetPluginCapabilitiesResponse{
 		Capabilities: []*csi.PluginCapability{
 			{
+				// 由于NFS驱动实现了Controller服务，所以这里返回了这个能力
 				Type: &csi.PluginCapability_Service_{
 					Service: &csi.PluginCapability_Service{
 						Type: csi.PluginCapability_Service_CONTROLLER_SERVICE,
