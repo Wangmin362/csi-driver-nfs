@@ -26,7 +26,8 @@ import (
 )
 
 var (
-	endpoint              = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
+	endpoint = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
+	// TODO 这个参数有啥用？
 	nodeID                = flag.String("nodeid", "", "node id")
 	mountPermissions      = flag.Uint64("mount-permissions", 0, "mounted folder permissions")
 	driverName            = flag.String("drivername", nfs.DefaultDriverName, "name of the driver")

@@ -85,14 +85,20 @@ func NewDriver(options *DriverOptions) *Driver {
 	}
 
 	n.AddControllerServiceCapabilities([]csi.ControllerServiceCapability_RPC_Type{
+		// 支持删除、创建持久卷
 		csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
+		// 支持把持久卷挂载到一个节点上，允许多个Pod同事进行读写
 		csi.ControllerServiceCapability_RPC_SINGLE_NODE_MULTI_WRITER,
+		// TODO 支持卷的克隆, NFS是如何支持卷的克隆的？
 		csi.ControllerServiceCapability_RPC_CLONE_VOLUME,
+		// TODO 支持创建和删除持久卷快照,NFS是如何支持卷的快照的？
 		csi.ControllerServiceCapability_RPC_CREATE_DELETE_SNAPSHOT,
 	})
 
 	n.AddNodeServiceCapabilities([]csi.NodeServiceCapability_RPC_Type{
+		// 支持获取持久卷的事情情况
 		csi.NodeServiceCapability_RPC_GET_VOLUME_STATS,
+		// 支持把持久卷挂载到耽搁节点上，允许多个Pod同时进行读写
 		csi.NodeServiceCapability_RPC_SINGLE_NODE_MULTI_WRITER,
 		csi.NodeServiceCapability_RPC_UNKNOWN,
 	})
@@ -108,6 +114,7 @@ func NewNodeServer(n *Driver, mounter mount.Interface) *NodeServer {
 }
 
 func (n *Driver) Run(testMode bool) {
+	// 打印当前CSI存储插件的持久化存储信息
 	versionMeta, err := GetVersionYAML(n.name)
 	if err != nil {
 		klog.Fatalf("%v", err)
