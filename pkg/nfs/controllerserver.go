@@ -169,6 +169,7 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		volCap = req.GetVolumeCapabilities()[0]
 	}
 	// Mount nfs base share so we can create a subdirectory
+	// TODO 这里是在干嘛？
 	if err = cs.internalMount(ctx, nfsVol, parameters, volCap); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to mount nfs server: %v", err.Error())
 	}
@@ -301,6 +302,7 @@ func (cs *ControllerServer) GetCapacity(ctx context.Context, req *csi.GetCapacit
 
 // ControllerGetCapabilities implements the default GRPC callout.
 // Default supports all capabilities
+// 返回当前CSI-NFS插件支持的ControllerService能力
 func (cs *ControllerServer) ControllerGetCapabilities(ctx context.Context, req *csi.ControllerGetCapabilitiesRequest) (*csi.ControllerGetCapabilitiesResponse, error) {
 	return &csi.ControllerGetCapabilitiesResponse{
 		Capabilities: cs.Driver.cscap,
