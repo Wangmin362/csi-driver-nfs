@@ -106,6 +106,7 @@ func (ns *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		source = fmt.Sprintf("%s/%s", source, subDir)
 	}
 
+	// TODO 似乎是用来判断当前的挂载点是否有效
 	notMnt, err := ns.mounter.IsLikelyNotMountPoint(targetPath)
 	if err != nil {
 		if os.IsNotExist(err) {

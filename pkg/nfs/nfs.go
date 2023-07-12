@@ -65,7 +65,8 @@ const (
 	// The base directory must be a direct child of the root directory.
 	// The root directory is omitted from the string, for example:
 	//     "base" instead of "/base"
-	paramShare            = "share"
+	paramShare = "share"
+	// TODO 这个参数是拿来干嘛的？
 	paramSubDir           = "subdir"
 	paramOnDelete         = "ondelete"
 	mountOptionsField     = "mountoptions"

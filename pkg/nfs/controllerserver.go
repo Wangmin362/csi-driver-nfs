@@ -134,6 +134,7 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		parameters = make(map[string]string)
 	}
 	// validate parameters (case-insensitive)
+	// 主要是为了解析PV传递过来的权限参数
 	for k, v := range parameters {
 		switch strings.ToLower(k) {
 		case paramServer:
@@ -181,6 +182,7 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 
 	// Create subdirectory under base-dir
 	internalVolumePath := getInternalVolumePath(cs.Driver.workingMountDir, nfsVol)
+	// TODO 这里应该是在挂在路径上创建子路径
 	if err = os.MkdirAll(internalVolumePath, 0777); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to make subdirectory: %v", err.Error())
 	}
@@ -192,6 +194,7 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		}
 	}
 
+	// TODO 这里是在干嘛？
 	if req.GetVolumeContentSource() != nil {
 		if err := cs.copyVolume(ctx, req, nfsVol); err != nil {
 			return nil, err
@@ -440,6 +443,7 @@ func (cs *ControllerServer) internalMount(ctx context.Context, vol *nfsVolume, v
 	}
 
 	sharePath := filepath.Join(string(filepath.Separator) + vol.baseDir)
+	// 获取挂载路径
 	targetPath := getInternalMountPath(cs.Driver.workingMountDir, vol)
 
 	volContext := map[string]string{
@@ -454,6 +458,7 @@ func (cs *ControllerServer) internalMount(ctx context.Context, vol *nfsVolume, v
 	}
 
 	klog.V(2).Infof("internally mounting %s:%s at %s", vol.server, sharePath, targetPath)
+	// TODO 把目录挂在到节点上
 	_, err := cs.Driver.ns.NodePublishVolume(ctx, &csi.NodePublishVolumeRequest{
 		TargetPath:       targetPath,
 		VolumeContext:    volContext,
@@ -635,15 +640,16 @@ func newNFSVolume(name string, size int64, params map[string]string, defaultOnDe
 	}
 
 	vol := &nfsVolume{
-		server:  server,
-		baseDir: baseDir,
-		size:    size,
+		server:  server,  // NFS服务地址
+		baseDir: baseDir, // 共享目录
+		size:    size,    // 用户申请持久卷的大小
 	}
 	if subDir == "" {
 		// use pv name by default if not specified
 		vol.subDir = name
 	} else {
 		// replace pv/pvc name namespace metadata in subDir
+		// 替换占位参数
 		vol.subDir = replaceWithMap(subDir, subDirReplaceMap)
 		// make volume id unique if subDir is provided
 		vol.uuid = name
