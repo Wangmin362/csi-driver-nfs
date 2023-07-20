@@ -71,14 +71,17 @@ sanity-test: nfs
 integration-test: nfs
 	./test/integration/run-test.sh
 
+ARCH=amd64
+LOCAL_USER=192.168.11.20/csi
 .PHONY: local-build-push
 local-build-push: nfs
-	docker build -t $(LOCAL_USER)/nfsplugin:latest .
+	/bin/cp -f /root/go/bin/dlv ./bin/amd64/
+	docker build --build-arg ARCH="${ARCH}" -t $(LOCAL_USER)/nfsplugin:latest .
 	docker push $(LOCAL_USER)/nfsplugin
 
 .PHONY: nfs
 nfs:
-	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) go build -a -ldflags "${LDFLAGS} ${EXT_LDFLAGS}" -mod vendor -o bin/${ARCH}/nfsplugin ./cmd/nfsplugin
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) go build -a -ldflags "${LDFLAGS}" -gcflags=all="-N -l" -mod vendor -o bin/${ARCH}/nfsplugin ./cmd/nfsplugin
 
 .PHONY: nfs-armv7
 nfs-armv7:
