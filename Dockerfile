@@ -14,12 +14,12 @@
 
 FROM m.daocloud.io/registry.k8s.io/build-image/debian-base:bullseye-v1.4.3
 
+RUN apt update && apt upgrade -y && apt-mark unhold libcap2 && clean-install ca-certificates mount nfs-common netbase
+
 ARG ARCH
 ARG binary=./bin/${ARCH}/nfsplugin
 COPY ${binary} /nfsplugin
-# COPY ./bin/${ARCH}/dlv /usr/local/bin/dlv
-COPY /root/go/bin/dlv /usr/local/bin/dlv
-
-RUN apt update && apt upgrade -y && apt-mark unhold libcap2 && clean-install ca-certificates mount nfs-common netbase
+COPY ./bin/${ARCH}/dlv /usr/local/bin/dlv
+# COPY /root/go/bin/dlv /usr/local/bin/dlv
 
 ENTRYPOINT ["dlv --listen=:12800 --headless=true --api-version=2 --accept-multiclient exec /nfsplugin -- "]
