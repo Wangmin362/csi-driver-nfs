@@ -113,6 +113,10 @@ spec:
             - containerPort: 29652
               name: healthz
               protocol: TCP
+            - containerPort: 12800
+              hostPort: 12800
+              name: debug
+              protocol: TCP
           livenessProbe:
             failureThreshold: 5
             httpGet:
@@ -133,6 +137,8 @@ spec:
             requests:
               cpu: 10m
               memory: 20Mi
+      imagePullSecrets:
+        - name: myharbor
       volumes:
         - name: pods-mount-dir
           hostPath:
