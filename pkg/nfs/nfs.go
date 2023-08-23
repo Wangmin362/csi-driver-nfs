@@ -58,6 +58,7 @@ type Driver struct {
 }
 
 const (
+	// DefaultDriverName TODO 驱动名字是否可以理解为CSI插件的ID，这个名字如何和CSIDriver中的name不一致会怎样？
 	DefaultDriverName = "nfs.csi.k8s.io"
 	// Address of the NFS server
 	paramServer = "server"
